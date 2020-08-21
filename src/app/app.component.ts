@@ -1,11 +1,15 @@
-import { Component } from '@angular/core';
+import { AfterViewInit, Component } from '@angular/core';
 import * as agGrid from 'ag-grid-community';
 import { NestedMatExpansionPanelComponent } from './nested-mat-expansion-panel/nested-mat-expansion-panel.component';
+import { GridService } from './grid.service';
+import { Grid } from 'ag-grid-community';
+import { debounceTime } from 'rxjs/operators';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss']
+  styleUrls: ['./app.component.scss'],
+  providers: [GridService]
 })
 export class AppComponent {
   title = 'aggrid-material-expansion-panel';
@@ -35,7 +39,13 @@ export class AppComponent {
   public frameworkComponents: any;
   public sortingOrder: any;
 
-  constructor() {
+  constructor(private gs: GridService) {
+    this.gs.updateHeight$.pipe(
+      debounceTime(1)
+    ).subscribe(() => {
+      this.gridApi?.onRowHeightChanged();
+    });
+
     this.initTable();
   }
 
@@ -44,14 +54,12 @@ export class AppComponent {
     // this.gridColumnApi = this.gridOptions.columnApi;
     this.gridApi = params.api;
     this.gridColumnApi = params.columnApi;
-
-    this.gridApi.sizeColumnsToFit();
   }
 
   public initTable(): void {
     this.defaultColDef = {
       flex: 1,
-      autoHeight: true,
+      autoHeight: false,
       editable: false,
       enableBrowserTooltips: true,
       resizable: true,
